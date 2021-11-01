@@ -168,8 +168,3 @@ plt.grid()
 plt.legend()
 plt.savefig("Baneform.png")
 plt.show()
- 
- 
-#plt.plot(x,v) #Plot v mot x
- 
-#plt.axhline(0,-10,1500)'
