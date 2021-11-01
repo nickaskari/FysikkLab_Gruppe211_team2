@@ -1,0 +1,175 @@
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.interpolate import CubicSpline
+import math as mt
+ 
+h = 0.200
+xFast = np.asarray([0,h,2*h,3*h,4*h,5*h,6*h,7*h])
+ 
+xMin = 0.000
+xMax = 1.401
+dx= 0.0001
+dt = 0.0001
+M=21
+g= 9.81
+c=0.4
+R=0.011
+mu_s = 0.4
+ 
+yK = []
+yFast =np.array([0.40,0.315,0.299,0.306,0.281,0.236,0.168,0.200])
+ 
+v_list = []
+ 
+cs = CubicSpline(xFast, yFast,bc_type='natural')
+ 
+x = np.arange(xMin,xMax, dx)
+ 
+Nx= len(x)
+y=cs(x)     #Tabell med verdier for y
+dy=cs(x,1)  #Tabell med verdier for y'
+d2y=cs(x,2) #Tabell med verdier for y''
+#---------------------------------------
+ 
+for elem in dy:
+    yK.append(elem)
+   
+ 
+v = np.sqrt((2*g*(yFast[0]-y))/(1+c)) #Blir ei liste med alle verdier for v
+print(v[-1])
+beta= np.arctan(dy)
+#---------------------------------------
+t =np.zeros(x.size)
+totalT = 0
+ 
+for i in range(x.size-1):
+    totalT += (2*((x[i+1]-x[i]))/(v[i+1]+v[i]))
+    t[i+1] = totalT
+   
+    
+    
+    
+#-------------------------------------
+time = 0
+ 
+for i in range(t.size):
+   
+    time+=t[i]
+ 
+def timeToX(xPos):
+    timeToX = 0
+    for i in range(xPos):
+        timeToX+=t[i]
+       
+#print(timeToX(101))
+ 
+#-----------------------
+#Sentripitalakselrasjon
+ 
+#Normalkraft
+N = M*g
+
+#-------------------------------------
+#Krumning
+k = (d2y)/(np.absolute(1+(dy)**2))**(3/2)
+plt.plot(x,k)
+plt.title("$\it{Krumming}$ ")
+plt.xlabel("Posisjon $\it{x}$ [m]")
+plt.ylabel("Krumming")
+plt.grid()
+plt.savefig("Krumming.png")
+plt.show()
+
+#-------------------------------------
+#x(t) og v(t)
+
+plt.plot(t,x, label = "Forventet $\it{x(t)}$") # x mot t
+
+t_1 = np.loadtxt("forsok_1.txt", dtype = float, delimiter = "\t", usecols = [0], skiprows = 2)
+x_1 = np.loadtxt("forsok_1.txt", dtype = float, delimiter = "\t", usecols = [1], skiprows = 2)
+v_1 = np.loadtxt("forsok_1.txt", dtype = float, delimiter = "\t", usecols = [3], skiprows = 2)
+
+
+
+
+plt.plot(t_1,x_1, label = "Eksperimentell $\it{x_E(t)}$")
+plt.legend()
+plt.title("Posisjon $\it{x(t)}$ ")
+plt.xlabel("Tid $\it{t}$ [s]")
+plt.ylabel("Posisjon $\it{x}$ [m]")
+plt.grid()
+plt.savefig("PosisjonX.png")
+plt.show()
+
+plt.plot(t,v, label = "Forventet $\it{v(t)}$")
+plt.plot(t_1,v_1, label = "Eksperimentell $\it{v_E(t)}$")
+plt.legend()
+plt.title("Hastighet $\it{v(t)}$ ")
+plt.xlabel("Tid $\it{t}$ [s]")
+plt.ylabel("Hastighet $\it{v}$ [m/s]")
+plt.grid()
+plt.savefig("Hastighet.png")
+plt.show()
+
+#--------------------------------------------
+#Gjennomsnittlig feil mellom eksperimentell og beregnede hastighet
+
+v_new = []
+step = mt.floor(len(v)/75)
+for i in range(0, len(v), step):
+    v_new.append(v[i])
+
+errors = []
+for t in range(1, len(t_1) - 1):
+    errors.append(v_new[t] - v_1[t])
+
+a = 0
+                  
+for e in range(len(errors)):
+    a = a + errors[e]
+
+print("All the errors summed up: ", a)
+print("Average errors", a / len(errors))
+
+#----------------------------------------------------
+ 
+#-------------------------------------
+ 
+#f/N
+f = (2*M*g*np.sin(beta))/7
+fogn = np.absolute(f/N)
+plt.plot(x,fogn)
+plt.title("$\it{μ = f / N}$")
+plt.xlabel("Posisjon $\it{x}$ [m]")
+plt.ylabel("Friksjonskoeffisient $\it{μ}$")
+plt.grid()
+plt.savefig("Friksjon.png")
+plt.show()
+ 
+ 
+ 
+#-------------------------------------
+
+
+
+baneform = plt.figure('y(x)') #plt av banen
+plt.plot(x,y, label = "Forventet $\it{y(x)}$")
+plt.plot(xFast,yFast,'*', label = "Festepunkt")
+y_1 = np.loadtxt("forsok_1.txt", dtype = float, delimiter = "\t", usecols = [2], skiprows = 2)
+y_1 += y[0] - y_1[0]
+plt.plot(x_1,y_1, label = "Eksperimentell $\it{y_E(x)}$")
+
+
+
+plt.title("Baneform $\it{y(x)}$")
+plt.xlabel("Posisjon $\it{x}$ [m]")
+plt.ylabel("Posisjon $\it{y}$ [m]")
+plt.grid()
+plt.legend()
+plt.savefig("Baneform.png")
+plt.show()
+ 
+ 
+#plt.plot(x,v) #Plot v mot x
+ 
+#plt.axhline(0,-10,1500)'
